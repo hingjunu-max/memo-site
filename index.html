@@ -1,0 +1,3103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>식단 · 가계부 메모장</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2640514609523625" crossorigin="anonymous"></script>
+
+<style>
+:root{
+  --line:#e5e5e5;
+  --text:#222;
+  --muted:#888;
+  --accent:#e7c95d;
+  --blue:#f4f8ff;
+  --yellow:#fffcf0;
+  --red:#fff5f5;
+  --bg:#fafafa;
+  --blue-hdr:#e1eeff;
+  --yellow-hdr:#fff3cc;
+  --red-hdr:#ffe0e0;
+  --custom-hdr:#ebebeb;
+  --blue-txt:#1a56a3;
+  --yellow-txt:#996b00;
+  --red-txt:#b32626;
+  --custom-txt:#444;
+}
+
+*{
+  box-sizing:border-box
+}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+  color:var(--text);
+  background:#fff;
+  -webkit-tap-highlight-color:transparent
+}
+
+button,input,select{
+  font:inherit
+}
+
+button{
+  cursor:pointer
+}
+
+.app{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+header{
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:#fff;
+  border-bottom:1px solid #eee
+}
+
+.topbar{
+  height:56px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 16px
+}
+
+.topbar-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  overflow:hidden;
+  flex:1;
+  min-width:0;
+}
+
+.logo{
+  font-weight:800;
+  font-size:17px;
+  white-space:nowrap
+}
+
+.tabs{
+  display:flex;
+  gap:4px;
+  overflow-x:auto;
+  white-space:nowrap;
+  -webkit-overflow-scrolling:touch
+}
+
+.tabs::-webkit-scrollbar{
+  display:none
+}
+
+.tab{
+  border:0;
+  background:#f3f3f3;
+  padding:8px 14px;
+  border-radius:8px 8px 0 0;
+  color:#666;
+  font-size:13px;
+  flex-shrink:0
+}
+
+.tab.active{
+  background:#333;
+  color:#fff;
+  font-weight:700
+}
+
+.auth-area{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  white-space:nowrap;
+  margin-left:auto;
+  padding-left:12px;
+}
+
+.auth-area span{
+  color:#666;
+  max-width:100px;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+
+main{
+  flex:1;
+  display:flex;
+  flex-direction:column
+}
+
+.page{
+  display:none;
+  flex:1;
+  width:100%
+}
+
+.page.active{
+  display:flex;
+  flex-direction:row;
+}
+
+.sidebar{
+  width:245px;
+  flex:0 0 245px;
+  border-right:1px solid #ddd;
+  background:#fcfcfc;
+  padding:22px 18px;
+  overflow:auto
+}
+
+.content{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column
+}
+
+.content-head{
+  padding:16px 20px;
+  border-bottom:1px solid #eee;
+  background:#fff
+}
+
+.content-body{
+  flex:1;
+  overflow:auto;
+  padding:16px 20px
+}
+
+h2{
+  font-size:18px;
+  margin:0 0 4px
+}
+
+.sub{
+  font-size:12px;
+  color:#999
+}
+
+.section-title{
+  font-size:13px;
+  font-weight:800;
+  margin-bottom:10px
+}
+
+.category-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin:4px 0
+}
+
+.category-btn{
+  flex:1;
+  border:0;
+  background:transparent;
+  text-align:left;
+  padding:8px;
+  border-radius:7px;
+  font-size:14px
+}
+
+.category-btn:hover{
+  background:#f0f0f0
+}
+
+.category-btn.selected{
+  background:#fff1a8;
+  font-weight:700
+}
+
+.chev{
+  display:inline-block;
+  width:18px;
+  color:#777
+}
+
+.subcats{
+  padding:0 0 5px 25px
+}
+
+.subcat-btn{
+  display:block;
+  width:100%;
+  border:0;
+  background:transparent;
+  text-align:left;
+  padding:5px 8px;
+  color:#666;
+  border-radius:6px;
+  font-size:13px
+}
+
+.subcat-btn:hover,
+.subcat-btn.selected{
+  background:#eee;
+  color:#222
+}
+
+.edit-cats{
+  margin-top:18px;
+  border-top:1px solid #eee;
+  padding-top:14px
+}
+
+.mini-btn{
+  border:1px solid #ccc;
+  background:#fff;
+  border-radius:6px;
+  padding:5px 8px;
+  font-size:11px
+}
+
+.toolbar{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap
+}
+
+.primary{
+  background:#333;
+  color:#fff;
+  border:0;
+  border-radius:7px;
+  padding:8px 12px;
+  font-weight:700;
+  font-size:13px
+}
+
+.secondary{
+  background:#fff;
+  color:#333;
+  border:1px solid #ccc;
+  border-radius:7px;
+  padding:7px 10px;
+  font-size:12px
+}
+
+.google-btn{
+  background:#4285F4;
+  color:#fff;
+  border:0;
+  border-radius:7px;
+  padding:9px 14px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  width:100%;
+  margin-top:10px
+}
+
+.searchbox{
+  display:flex;
+  gap:6px;
+  margin-top:10px
+}
+
+.searchbox select,
+.searchbox input{
+  height:34px;
+  border:1px solid #ccc;
+  border-radius:6px;
+  padding:0 8px;
+  font-size:12px
+}
+
+.searchbox input{
+  flex:1;
+  min-width:120px
+}
+
+.list-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px
+}
+
+.sort{
+  border:1px solid #ccc;
+  background:#fff;
+  border-radius:6px;
+  padding:5px 8px;
+  font-size:12px
+}
+
+.recipe-list{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:10px
+}
+
+.recipe-card{
+  border:1px solid #ddd;
+  border-radius:10px;
+  padding:12px;
+  background:#fff;
+  min-height:150px;
+  position:relative
+}
+
+.recipe-card:hover{
+  box-shadow:0 3px 10px #0000000a
+}
+
+.recipe-title{
+  font-size:15px;
+  font-weight:800;
+  margin-right:45px
+}
+
+.recipe-meta{
+  font-size:11px;
+  color:#888;
+  margin:4px 0 8px
+}
+
+.ingredients{
+  font-size:11px;
+  line-height:1.5;
+  color:#555;
+  cursor:pointer;
+}
+
+.ingredients:hover{
+  text-decoration:underline;
+  color:#333;
+}
+
+.recipe-link{
+  font-size:11px;
+  color:#1769aa;
+  text-decoration:underline;
+  display:inline-block;
+  margin-top:6px;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+
+.spicy{
+  position:absolute;
+  right:10px;
+  top:10px;
+  font-size:14px
+}
+
+.card-actions{
+  position:absolute;
+  right:8px;
+  bottom:8px;
+  display:flex;
+  gap:4px
+}
+
+.card-actions button{
+  font-size:11px;
+  border:0;
+  background:#f2f2f2;
+  border-radius:5px;
+  padding:4px 7px
+}
+
+.empty{
+  padding:40px;
+  text-align:center;
+  color:#aaa;
+  border:1px dashed #ddd;
+  border-radius:10px
+}
+
+.pagination{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:6px;
+  margin-top:16px
+}
+
+.pagination button{
+  border:1px solid #ccc;
+  background:#fff;
+  border-radius:5px;
+  padding:6px 12px;
+  font-size:13px;
+  font-weight:bold;
+}
+
+.pagination button.current{
+  background:#333;
+  color:#fff;
+  border-color:#333;
+}
+
+.pagination button:disabled{
+  opacity:0.4;
+  cursor:not-allowed;
+}
+
+.pagination .page-num-info{
+  font-size:13px;
+  font-weight:700;
+  color:#555;
+}
+
+.calendar-wrap{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  background:#fff;
+  padding:4px
+}
+
+.calendar-head{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:12px;
+  padding:8px 4px;
+  border-bottom:1px solid #eee
+}
+
+.month-title{
+  font-size:17px;
+  font-weight:800;
+  min-width:120px;
+  text-align:center
+}
+
+.arrow{
+  border:0;
+  background:#fff;
+  font-size:16px;
+  padding:4px 8px
+}
+
+.calendar{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  flex:1;
+  min-height:500px;
+  border-top:1px solid #eee;
+  border-left:1px solid #eee
+}
+
+.dow,
+.day{
+  border-right:1px solid #eee;
+  border-bottom:1px solid #eee
+}
+
+.dow{
+  height:28px;
+  background:#fafafa;
+  text-align:center;
+  padding-top:4px;
+  font-size:12px;
+  font-weight:700
+}
+
+.dow:first-child{
+  color:#e53935
+}
+
+.dow:last-child{
+  color:#1e88e5
+}
+
+.day{
+  min-height:90px;
+  overflow-y:auto;
+  padding:2px;
+  display:flex;
+  flex-direction:column;
+  gap:1px;
+  cursor:pointer
+}
+
+.day:hover{
+  background-color:#f9f9f9
+}
+
+.date-num{
+  font-size:11px;
+  color:#444;
+  margin-bottom:2px;
+  font-weight:700;
+  padding-left:2px
+}
+
+.day:first-child .date-num{
+  color:#e53935
+}
+
+.day:last-child .date-num{
+  color:#1e88e5
+}
+
+.today .date-num{
+  display:inline-flex;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:#333;
+  color:#fff;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  padding-left:0
+}
+
+.meal-group{
+  border-radius:3px;
+  overflow:hidden;
+  margin-bottom:3px;
+  font-size:11px;
+  border:0;
+  background:transparent;
+  cursor:pointer
+}
+
+.meal-group-header{
+  padding:1px 3px;
+  font-weight:800;
+  font-size:10px;
+  letter-spacing:-.5px;
+  line-height:1.2
+}
+
+.meal-group-header.meal-breakfast{
+  color:var(--blue-txt);
+  background:var(--blue-hdr)
+}
+
+.meal-group-header.meal-lunch{
+  color:var(--yellow-txt);
+  background:var(--yellow-hdr)
+}
+
+.meal-group-header.meal-dinner{
+  color:var(--red-txt);
+  background:var(--red-hdr)
+}
+
+.meal-group-header.meal-custom{
+  color:var(--custom-txt);
+  background:var(--custom-hdr)
+}
+
+.meal-group-body{
+  display:flex;
+  flex-direction:column;
+  padding:1px 0
+}
+
+.meal-group-body.meal-breakfast{
+  background:var(--blue)
+}
+
+.meal-group-body.meal-lunch{
+  background:var(--yellow)
+}
+
+.meal-group-body.meal-dinner{
+  background:var(--red)
+}
+
+.meal-group-body.meal-custom{
+  background:#f8f8f8
+}
+
+.meal-item{
+  padding:1px 2px;
+  line-height:1.25;
+  position:relative;
+  font-size:10.5px;
+  color:#222;
+  letter-spacing:-.6px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  display:flex;
+  align-items:center;
+  justify-content:space-between
+}
+
+.meal-item-text{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  flex:1
+}
+
+.meal-item.registered{
+  font-weight:600
+}
+
+.random-page{
+  display:flex;
+  flex:1;
+  width:100%
+}
+
+.random-side{
+  width:245px;
+  border-right:1px solid #ddd;
+  padding:22px;
+  background:#fcfcfc;
+  overflow:auto
+}
+
+.filter-group{
+  margin-bottom:20px
+}
+
+.filter-group h3{
+  font-size:13px;
+  margin:0 0 9px
+}
+
+.random-main{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  position:relative
+}
+
+.random-card{
+  width:min(520px,95%);
+  min-height:200px;
+  border:1px solid #ddd;
+  border-radius:16px;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  box-shadow:0 8px 30px #0000000b;
+  text-align:center
+}
+
+.random-card .emoji{
+  font-size:38px;
+  margin-bottom:8px
+}
+
+.random-card .big-title{
+  font-size:22px;
+  font-weight:900
+}
+
+.random-card .small-meta{
+  color:#888;
+  margin-top:6px;
+  font-size:12px
+}
+
+.random-btn{
+  margin-top:18px;
+  border:0;
+  background:#333;
+  color:#fff;
+  border-radius:10px;
+  padding:11px 22px;
+  font-size:14px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.random-btn:active{
+  opacity: 0.8;
+}
+
+.history{
+  margin-top:14px;
+  color:#888;
+  font-size:12px;
+  text-align:center
+}
+
+.modal-backdrop{
+  position:fixed;
+  inset:0;
+  background:#0007;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:100;
+  padding:15px
+}
+
+.modal-backdrop.open{
+  display:flex
+}
+
+.modal{
+  width:min(540px,100%);
+  max-height:90vh;
+  overflow:auto;
+  background:#fff;
+  border-radius:12px;
+  padding:18px;
+  box-shadow:0 15px 50px #0005
+}
+
+.modal h3{
+  margin:0 0 14px;
+  font-size:16px
+}
+
+.form-row{
+  margin-bottom:10px
+}
+
+.form-row label{
+  display:block;
+  font-size:12px;
+  font-weight:700;
+  margin-bottom:4px
+}
+
+.form-row input,
+.form-row select{
+  width:100%;
+  height:36px;
+  border:1px solid #ccc;
+  border-radius:6px;
+  padding:0 8px;
+  font-size:13px
+}
+
+.inline{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px
+}
+
+.modal-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:6px;
+  margin-top:16px
+}
+
+.picker-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(65px,1fr));
+  gap:5px
+}
+
+.filter-pill{
+  border:1px solid #ccc;
+  background:#fff;
+  border-radius:6px;
+  padding:6px 3px;
+  font-size:11px;
+  text-align:center;
+  cursor:pointer;
+}
+
+.filter-pill.active{
+  background:#333;
+  color:#fff;
+  border-color:#333
+}
+
+.custom-meals{
+  border:1px solid #ddd;
+  border-radius:8px;
+  padding:8px
+}
+
+.custom-item{
+  display:flex;
+  gap:6px;
+  align-items:center;
+  margin:4px 0
+}
+
+.custom-item input{
+  flex:1
+}
+
+.minus{
+  width:26px;
+  height:26px;
+  border:0;
+  background:#f0f0f0;
+  border-radius:5px;
+  color:#888;
+  flex-shrink:0
+}
+
+.add-custom{
+  border:1px dashed #bbb;
+  background:#fff;
+  border-radius:6px;
+  padding:5px 8px;
+  font-size:12px;
+  margin-top:4px;
+  width:100%
+}
+
+.yearmonth-picker{
+  display:flex;
+  gap:8px
+}
+
+.yearmonth-picker select{
+  flex:1
+}
+
+.excel-table-wrap{
+  width:100%;
+  overflow-x:auto;
+  border:1px solid #ccc;
+  border-radius:6px;
+}
+
+.excel-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:12px;
+  text-align:left;
+}
+
+.excel-table th, .excel-table td{
+  border:1px solid #e0e0e0;
+  padding:8px 10px;
+}
+
+.excel-table th{
+  background-color:#f5f5f5;
+  font-weight:700;
+  color:#333;
+}
+
+.excel-table tr:nth-child(even){
+  background-color:#fafafa;
+}
+
+.excel-table tr:hover{
+  background-color:#f0f7ff;
+}
+
+.excel-table tr.completed-row {
+  background-color: #f0f0f0 !important;
+  color: #999 !important;
+  text-decoration: line-through;
+}
+.excel-table tr.completed-row .clickable-ingredient {
+  color: #888 !important;
+  text-decoration: line-through;
+}
+
+.clickable-ingredient{
+  color:#1a56a3;
+  cursor:pointer;
+  font-weight:600;
+  text-decoration:underline;
+}
+
+.clickable-ingredient:hover{
+  color:#002b66;
+}
+
+.mobile-toggle-btn{
+  display:none;
+  width:100%;
+  padding:8px;
+  background:#f5f5f5;
+  border:1px solid #ccc;
+  border-radius:6px;
+  font-weight:700;
+  margin-bottom:8px;
+  text-align:left;
+  font-size:12px
+}
+
+.mobile-card-list{
+  display:none;
+}
+
+.bottom-ad-area{
+  width:100%;
+  min-height:70px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#fff;
+  border-top:1px solid #eee;
+  border-bottom:1px solid #eee;
+  padding:0;
+  overflow:hidden
+}
+
+.bottom-ad-pc{
+  display:block;
+  width:100%;
+  max-width:970px;
+  min-height:70px
+}
+
+.bottom-ad-mobile{
+  display:none;
+  width:100%;
+  min-height:60px
+}
+
+.bottom-ad-area ins{
+  display:block;
+  width:100%
+}
+
+/* 유통기한 임박 알림바 스타일 */
+.expiry-alert-bar {
+  background-color: #fff5f5;
+  border: 1px solid #ffcdd2;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #b32626;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.expiry-alert-bar .alert-icon { font-size: 16px; }
+.expiry-alert-item { font-weight: 700; background: #ffe0e0; padding: 2px 6px; border-radius: 4px; }
+
+.ledger-month-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  background: #fdfdfd;
+  border: 1px solid #eee;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+.ledger-month-title {
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.ledger-month-title:hover {
+  text-decoration: underline;
+  color: #1a56a3;
+}
+
+@media(max-width:768px){
+  .topbar{
+    padding:0 8px;
+    height:48px
+  }
+  .logo{
+    display:none
+  }
+  .auth-area span{
+    display:none
+  }
+  .tab{
+    padding:5px 8px;
+    font-size:11px
+  }
+  .page.active{
+    flex-direction:column !important;
+  }
+  .mobile-toggle-btn{
+    display:block
+  }
+  .sidebar,
+  .random-side{
+    width:100% !important;
+    flex:none !important;
+    border-right:0 !important;
+    border-bottom:1px solid #ddd;
+    padding:10px !important;
+    max-height:none !important;
+  }
+  .sidebar-content,
+  .random-side-content{
+    display:none
+  }
+  .sidebar.open .sidebar-content,
+  .random-side.open .random-side-content{
+    display:block
+  }
+  .content{
+    width:100% !important;
+    flex:1;
+  }
+  .content-head{
+    padding:8px 10px
+  }
+  .content-body{
+    padding:8px 10px
+  }
+  .toolbar{
+    gap:4px
+  }
+  .toolbar h2{
+    font-size:14px
+  }
+  .toolbar .sub{
+    display:none
+  }
+  .primary,
+  .secondary{
+    padding:5px 7px;
+    font-size:11px
+  }
+  .recipe-list{
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+  .recipe-card{
+    min-height:auto;
+    padding:10px;
+  }
+  .excel-table-wrap{
+    display:none;
+  }
+  .mobile-card-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .mobile-card-item{
+    border:1px solid #e0e0e0;
+    border-radius:8px;
+    padding:10px 12px;
+    background:#fff;
+    box-shadow:0 1px 3px rgba(0,0,0,0.05);
+  }
+  .mobile-card-item.completed-card{
+    background:#f5f5f5;
+    color:#999;
+  }
+  .mobile-card-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-weight:700;
+    font-size:14px;
+    margin-bottom:6px;
+  }
+  .mobile-card-header .badge{
+    font-size:11px;
+    background:#eee;
+    padding:2px 6px;
+    border-radius:4px;
+    color:#555;
+    font-weight:normal;
+  }
+  .mobile-card-body{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:4px 8px;
+    font-size:12px;
+    color:#444;
+  }
+  .mobile-card-body div{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .mobile-card-footer{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:8px;
+    padding-top:6px;
+    border-top:1px solid #f0f0f0;
+    font-size:11px;
+  }
+  .mobile-card-actions{
+    display:flex;
+    gap:4px;
+  }
+  .calendar-wrap{
+    padding:0
+  }
+  .calendar-head{
+    padding:4px 2px
+  }
+  .month-title{
+    font-size:14px;
+    min-width:80px
+  }
+  .day{
+    min-height:75px;
+    padding:1px
+  }
+  .date-num{
+    font-size:9.5px;
+    margin-bottom:1px
+  }
+  .meal-group{
+    margin-bottom:2px
+  }
+  .meal-group-header{
+    font-size:9px;
+    padding:.5px 2px
+  }
+  .meal-item{
+    font-size:10px;
+    padding:.5px 1px;
+    letter-spacing:-.7px
+  }
+  .random-page{
+    flex-direction:column
+  }
+  .random-main{
+    padding:10px
+  }
+  .random-card{
+    padding:15px
+  }
+  .random-card .big-title{
+    font-size:17px
+  }
+  .bottom-ad-area{
+    min-height:60px
+  }
+  .bottom-ad-pc{
+    display:none
+  }
+  .bottom-ad-mobile{
+    display:block;
+    min-height:60px
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header>
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="logo">🍳 식단 메모장</div>
+      <div class="tabs">
+        <button class="tab active" data-page="recipes">식단리스트</button>
+        <button class="tab" data-page="calendar">월간식단</button>
+        <button class="tab" data-page="ledger">가계부</button>
+        <button class="tab" data-page="expiry">유통기한</button>
+        <button class="tab" data-page="random">오늘 뭐먹지</button>
+      </div>
+    </div>
+    <div class="auth-area">
+      <span id="userStatus">비로그인</span>
+      <button id="authBtn" class="secondary">로그인</button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<section id="recipes" class="page active">
+  <aside class="sidebar" id="recipeSidebar">
+    <button class="mobile-toggle-btn" onclick="toggleSidebar('recipeSidebar')">
+      📂 카테고리 메뉴 열기/접기
+    </button>
+    <div class="sidebar-content">
+      <div class="section-title">카테고리 ▾</div>
+      <div id="categoryTree"></div>
+      <div class="edit-cats">
+        <div class="section-title">카테고리 편집</div>
+        <div style="display:flex;gap:4px">
+          <button class="mini-btn" onclick="addCategory()">＋ 대분류</button>
+          <button class="mini-btn" onclick="resetCategories()">기본값 복원</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="content">
+    <div class="content-head">
+      <div class="toolbar">
+        <div>
+          <h2>식단 리스트</h2>
+          <div class="sub">등록한 요리를 한눈에 관리하세요.</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="secondary" onclick="exportRecipesToExcel()">📊 엑셀 다운로드</button>
+          <button class="primary" onclick="openRecipeModal()">＋ 요리등록</button>
+        </div>
+      </div>
+
+      <form class="searchbox" action="javascript:void(0);" onsubmit="renderRecipes(); return false;">
+        <select id="searchType">
+          <option value="name">요리명</option>
+          <option value="ingredient">재료명</option>
+        </select>
+        <input id="searchInput" type="search" placeholder="요리명/재료명 검색" enterkeyhint="search" onkeydown="if(event.key==='Enter'){ renderRecipes(); }">
+        <button type="submit" class="secondary">검색</button>
+        <button type="button" class="secondary" onclick="clearSearch()">초기화</button>
+      </form>
+    </div>
+
+    <div class="content-body">
+      <div class="list-top">
+        <span id="recipeCount" class="sub">총 0개</span>
+        <select id="sortOrder" class="sort" onchange="renderRecipes()">
+          <option value="new">최신순</option>
+          <option value="old">오래된순</option>
+          <option value="abc">가나다순</option>
+        </select>
+      </div>
+      <div id="recipeList" class="recipe-list"></div>
+      <div id="recipePagination" class="pagination"></div>
+    </div>
+  </div>
+</section>
+
+<section id="calendar" class="page">
+  <div class="content">
+    <div class="content-head">
+      <div class="toolbar">
+        <div>
+          <h2>월간식단</h2>
+          <div class="sub">날짜별 식단을 기록하고 이미지로 저장해 보세요.</div>
+        </div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          <button id="undoMealBtn" class="secondary" onclick="undoMealChange()" disabled>↶ 취소</button>
+          <button id="redoMealBtn" class="secondary" onclick="redoMealChange()" disabled>↷ 복원</button>
+          <button class="secondary" onclick="goToday()">오늘</button>
+          <button class="secondary" onclick="downloadCalendarImage()">📷 이미지 저장</button>
+          <button class="secondary" onclick="exportCalendarToExcel()">📊 엑셀 다운로드</button>
+          <button class="primary" onclick="openMealModal()">＋ 식단 추가</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="calendar-wrap" id="calendarCaptureArea">
+      <div class="calendar-head">
+        <button class="arrow" onclick="changeMonth(-1)">◀</button>
+        <button class="arrow" onclick="openMonthModal()">📅</button>
+        <div id="monthTitle" class="month-title"></div>
+        <button class="arrow" onclick="changeMonth(1)">▶</button>
+      </div>
+      <div id="calendarGrid" class="calendar"></div>
+    </div>
+  </div>
+</section>
+
+<section id="ledger" class="page">
+  <div class="content">
+    <div class="content-head">
+      <div class="toolbar">
+        <div>
+          <h2>식재료 가계부</h2>
+          <div id="monthlyTotalDisplay" style="font-weight:700; color:#1a56a3; margin-top:4px;">
+            식재료 총구매비: 0원
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="secondary" onclick="exportLedgerToExcel()">📊 엑셀 다운로드</button>
+          <button class="secondary" onclick="openLedgerStatsModal()">📊 월별 통계</button>
+          <button class="primary" onclick="openLedgerModal()">＋ 지출 등록</button>
+        </div>
+      </div>
+    </div>
+    <div class="content-body">
+      <div class="ledger-month-bar">
+        <button class="arrow" onclick="changeLedgerMonth(-1)">◀</button>
+        <div id="ledgerMonthTitle" class="ledger-month-title" onclick="openLedgerMonthModal()">2026년 9월</div>
+        <button class="arrow" onclick="changeLedgerMonth(1)">▶</button>
+      </div>
+
+      <div class="list-top">
+        <span id="ledgerCount" class="sub">총 0개</span>
+        <select id="ledgerSortOrder" class="sort" onchange="renderLedger()">
+          <option value="purchaseDesc">구매일역순</option>
+          <option value="purchaseAsc">구매일순</option>
+          <option value="abc">가나다순</option>
+          <option value="store">구매처순</option>
+          <option value="recipeAvailable">제작가능순</option>
+        </select>
+      </div>
+
+      <div class="excel-table-wrap">
+        <table class="excel-table">
+          <thead>
+            <tr>
+              <th style="width:40px; text-align:center;">완료</th>
+              <th>구분</th>
+              <th>재료명</th>
+              <th>중량/개수</th>
+              <th>가격</th>
+              <th>구매일</th>
+              <th>구매처</th>
+              <th>유통기한</th>
+              <th>링크</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody id="ledgerTableBody">
+          </tbody>
+        </table>
+      </div>
+
+      <div id="ledgerMobileCardList" class="mobile-card-list"></div>
+    </div>
+  </div>
+</section>
+
+<section id="expiry" class="page">
+  <div class="content">
+    <div class="content-head">
+      <div class="toolbar">
+        <div>
+          <h2>유통기한 관리</h2>
+          <div class="sub">등록된 식재료의 유통기한을 확인하고 메뉴를 구상해 보세요.</div>
+        </div>
+      </div>
+    </div>
+    <div class="content-body">
+      <div id="expiryPageAlertContainer"></div>
+
+      <div class="list-top">
+        <span id="expiryCount" class="sub">총 0개</span>
+        <select id="expirySortOrder" class="sort" onchange="renderExpiryList()">
+          <option value="imminent">임박순</option>
+          <option value="fresh">신선순</option>
+          <option value="abc">가나다순</option>
+        </select>
+      </div>
+      <div class="excel-table-wrap">
+        <table class="excel-table">
+          <thead>
+            <tr>
+              <th>구분</th>
+              <th>재료명 (클릭시 요리조회)</th>
+              <th>중량/개수</th>
+              <th>유통기한</th>
+              <th>남은 기한</th>
+              <th>구매처</th>
+            </tr>
+          </thead>
+          <tbody id="expiryTableBody">
+          </tbody>
+        </table>
+      </div>
+
+      <div id="expiryMobileCardList" class="mobile-card-list"></div>
+    </div>
+  </div>
+</section>
+
+<section id="random" class="page">
+  <div class="random-page">
+    <aside class="random-side" id="randomSidebar">
+      <button class="mobile-toggle-btn" onclick="toggleSidebar('randomSidebar')">
+        ⚙️ 추천 필터 설정 열기/접기
+      </button>
+      <div class="random-side-content">
+        <div class="section-title">오늘 뭐먹지 설정</div>
+        <div class="filter-group">
+          <h3>카테고리</h3>
+          <div class="picker-grid" id="randomCategories"></div>
+        </div>
+        <div class="filter-group">
+          <h3>요리종류</h3>
+          <div class="picker-grid" id="randomTypes"></div>
+        </div>
+        <div class="filter-group">
+          <h3>맵기정도</h3>
+          <div class="picker-grid" id="randomSpicy"></div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="random-main">
+      <div class="random-card" id="randomCard">
+        <div class="emoji">🍽️</div>
+        <div class="big-title">오늘 뭐 먹지?</div>
+        <div class="small-meta">조건을 설정하고 추천 메뉴를 뽑아보세요.</div>
+      </div>
+      <button class="random-btn" onclick="drawRandom()">🎲 추천 메뉴 뽑기</button>
+      <div class="history" id="randomHistory"></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="bottom-ad-area">
+  <div class="bottom-ad-pc">
+    <ins class="adsbygoogle"
+      style="display:block"
+      data-ad-client="ca-pub-2640514609523625"
+      data-ad-slot="7515365180"
+      data-ad-format="auto"
+      data-full-width-responsive="true"></ins>
+  </div>
+  <div class="bottom-ad-mobile">
+    <ins class="adsbygoogle"
+      style="display:block"
+      data-ad-client="ca-pub-2640514609523625"
+      data-ad-slot="2430559460"
+      data-ad-format="auto"
+      data-full-width-responsive="true"></ins>
+  </div>
+</div>
+
+<script>
+  (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+<div id="modalBackdrop" class="modal-backdrop" onclick="backdropClose(event)">
+  <div id="modalBox" class="modal"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCj30whJRoLhym-tvpLDo8EeHrKo8m5T5E",
+  authDomain: "meal-budget-journal-d0a66.firebaseapp.com",
+  projectId: "meal-budget-journal-d0a66",
+  storageBucket: "meal-budget-journal-d0a66.firebasestorage.app",
+  messagingSenderId: "858161884252",
+  appId: "1:858161884252:web:e7eaa031662e03e05d0a99"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
+
+const defaultCategories = {
+  "한식": ["메인요리", "반찬", "국/찌개", "한그릇요리", "외식"],
+  "양식": ["에피타이저", "메인요리", "외식"],
+  "중식": ["메인요리", "서브요리", "외식"],
+  "일식": ["메인요리", "반찬", "국/찌개", "한그릇요리", "외식"],
+  "디저트": ["빵", "쿠키", "설탕", "외식"],
+  "음료": ["외식"]
+};
+
+const CATEGORY_ORDER = ["한식", "양식", "중식", "일식", "디저트", "음료"];
+
+const seedRecipes = [
+  { id: crypto.randomUUID(), category: "한식", type: "메인요리", name: "닭볶음탕", spicy: "조금 매움", ingredients: "닭고기, 감자, 양파, 고추", link: "", created: Date.now() - 3000 },
+  { id: crypto.randomUUID(), category: "한식", type: "반찬", name: "계란말이", spicy: "안매움", ingredients: "계란, 대파, 소금", link: "", created: Date.now() - 2000 },
+  { id: crypto.randomUUID(), category: "일식", type: "한그릇요리", name: "규동", spicy: "안매움", ingredients: "소고기, 양파, 간장, 밥", link: "", created: Date.now() - 1000 }
+];
+
+const loadJSON = (key, fallback) => {
+  try {
+    const v = JSON.parse(localStorage.getItem(key) || "null");
+    return v ?? fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+let currentUser = null;
+let unsubscribeSnapshot = null;
+let categories = loadJSON("dietCategories", structuredClone(defaultCategories));
+
+Object.keys(defaultCategories).forEach(cat => {
+  if (!categories[cat]) {
+    categories[cat] = [...defaultCategories[cat]];
+  } else if (!categories[cat].includes("외식")) {
+    categories[cat].push("외식");
+  }
+});
+
+let recipes = loadJSON("dietRecipes", structuredClone(seedRecipes));
+let meals = loadJSON("dietMeals", {});
+let ledgerItems = loadJSON("dietLedgerItems", []);
+let customMealTypes = loadJSON("customMealTypes", []);
+
+let lastSelectedCategory = "한식";
+let lastSelectedType = "메인요리";
+
+const spiceLevels = ["안매움", "매콤도 가능", "조금 매움", "많이 매움"];
+let collapsed = {};
+let selectedCategory = "전체";
+let selectedType = null;
+let recipePage = 1;
+let currentMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+let currentLedgerMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
+let randomState = { category: "전체", type: null, spice: null, history: [] };
+let mealUndoStack = [];
+let mealRedoStack = [];
+
+function orderedCategories(obj = categories) {
+  return Object.keys(obj).sort((a, b) => {
+    let ai = CATEGORY_ORDER.indexOf(a);
+    let bi = CATEGORY_ORDER.indexOf(b);
+    if (ai < 0) ai = 999;
+    if (bi < 0) bi = 999;
+    return ai - bi || a.localeCompare(b, "ko");
+  });
+}
+
+function sortKorean(arr, key = "name") {
+  return [...arr].sort((a, b) =>
+    String(a[key] ?? "").localeCompare(String(b[key] ?? ""), "ko", { numeric: true, sensitivity: "base" })
+  );
+}
+
+function normalizeUrl(v) {
+  const s = String(v || "").trim();
+  if (!s) return "";
+  if (!/^https?:\/\//i.test(s)) {
+    return "http://" + s;
+  }
+  try {
+    const u = new URL(s);
+    return ["http:", "https:"].includes(u.protocol) ? u.href : "";
+  } catch {
+    return "";
+  }
+}
+
+async function saveData() {
+  localStorage.setItem("dietCategories", JSON.stringify(categories));
+  localStorage.setItem("dietRecipes", JSON.stringify(recipes));
+  localStorage.setItem("dietMeals", JSON.stringify(meals));
+  localStorage.setItem("dietLedgerItems", JSON.stringify(ledgerItems));
+  localStorage.setItem("customMealTypes", JSON.stringify(customMealTypes));
+
+  if (currentUser) {
+    try {
+      await setDoc(doc(db, "users", currentUser.uid), {
+        categories, recipes, meals, ledgerItems, customMealTypes, updatedAt: Date.now()
+      });
+    } catch (e) {
+      console.error("Firestore sync failed:", e);
+    }
+  }
+}
+
+window.openModal = html => {
+  document.getElementById("modalBox").innerHTML = html;
+  document.getElementById("modalBackdrop").classList.add("open");
+};
+
+window.closeModal = () => document.getElementById("modalBackdrop").classList.remove("open");
+
+window.backdropClose = e => {
+  if (e.target.id === "modalBackdrop") window.closeModal();
+};
+
+window.openAuthModal = () => window.openModal(`
+  <h3>로그인 / 회원가입</h3>
+  <div class="form-row">
+    <label>이메일</label>
+    <input id="authEmail" type="email" placeholder="email@example.com">
+  </div>
+  <div class="form-row">
+    <label>비밀번호</label>
+    <input id="authPw" type="password" placeholder="비밀번호 입력">
+  </div>
+  <div class="modal-actions">
+    <button class="secondary" onclick="closeModal()">취소</button>
+    <button class="secondary" onclick="handleSignUp()">회원가입</button>
+    <button class="primary" onclick="handleSignIn()">로그인</button>
+  </div>
+  <hr style="margin:15px 0;border:0;border-top:1px solid #eee">
+  <button class="google-btn" onclick="handleGoogleSignIn()">
+    🌐 Google 계정으로 로그인
+  </button>
+`);
+
+window.handleSignIn = async () => {
+  const e = document.getElementById("authEmail").value;
+  const p = document.getElementById("authPw").value;
+  try {
+    await signInWithEmailAndPassword(auth, e, p);
+    window.closeModal();
+  } catch (err) {
+    alert("로그인 실패: " + err.message);
+  }
+};
+
+window.handleSignUp = async () => {
+  const e = document.getElementById("authEmail").value;
+  const p = document.getElementById("authPw").value;
+  try {
+    await createUserWithEmailAndPassword(auth, e, p);
+    window.closeModal();
+    alert("회원가입 완료!");
+  } catch (err) {
+    alert("회원가입 실패: " + err.message);
+  }
+};
+
+window.handleGoogleSignIn = async () => {
+  try {
+    await signInWithPopup(auth, googleProvider);
+    window.closeModal();
+  } catch (err) {
+    alert("구글 로그인 실패: " + err.message);
+  }
+};
+
+onAuthStateChanged(auth, user => {
+  currentUser = user;
+  const s = document.getElementById("userStatus");
+  const b = document.getElementById("authBtn");
+
+  if (unsubscribeSnapshot) {
+    unsubscribeSnapshot();
+    unsubscribeSnapshot = null;
+  }
+
+  if (user) {
+    s.textContent = user.email || user.displayName || "로그인됨";
+    b.textContent = "로그아웃";
+    b.onclick = () => signOut(auth);
+
+    unsubscribeSnapshot = onSnapshot(doc(db, "users", user.uid), snap => {
+      if (snap.exists()) {
+        const d = snap.data();
+        if (d.categories) {
+          categories = d.categories;
+          Object.keys(defaultCategories).forEach(cat => {
+            if (!categories[cat]) categories[cat] = [...defaultCategories[cat]];
+            else if (!categories[cat].includes("외식")) categories[cat].push("외식");
+          });
+        }
+        if (d.recipes) recipes = d.recipes;
+        if (d.meals) meals = d.meals;
+        if (d.ledgerItems) ledgerItems = d.ledgerItems;
+        if (d.customMealTypes) customMealTypes = d.customMealTypes;
+        refreshAllViews();
+      } else {
+        saveData();
+      }
+    }, e => {
+      console.warn("Firestore 접근 제한:", e.message);
+    });
+  } else {
+    s.textContent = "비로그인";
+    b.textContent = "로그인";
+    b.onclick = window.openAuthModal;
+
+    categories = loadJSON("dietCategories", structuredClone(defaultCategories));
+    Object.keys(defaultCategories).forEach(cat => {
+      if (!categories[cat]) categories[cat] = [...defaultCategories[cat]];
+      else if (!categories[cat].includes("외식")) categories[cat].push("외식");
+    });
+
+    recipes = loadJSON("dietRecipes", structuredClone(seedRecipes));
+    meals = loadJSON("dietMeals", {});
+    ledgerItems = loadJSON("dietLedgerItems", []);
+    customMealTypes = loadJSON("customMealTypes", []);
+    refreshAllViews();
+  }
+});
+
+function refreshAllViews() {
+  renderCategoryTree();
+  renderRecipes();
+  renderCalendar();
+  renderLedger();
+  renderExpiryList();
+  renderRandomFilters();
+  updateMealHistoryButtons();
+}
+
+window.toggleSidebar = id => document.getElementById(id)?.classList.toggle("open");
+window.saveData = saveData;
+
+window.esc = s => String(s ?? "").replace(/[&<>"']/g, m => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+}[m]));
+
+window.spicyEmoji = level => ({
+  "안매움": "", "매콤도 가능": "🌶️", "조금 매움": "🌶️🌶️", "많이 매움": "🌶️🌶️🌶️"
+}[level] || "");
+
+function switchTab(pageId) {
+  document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+  document.querySelectorAll(".page").forEach(x => x.classList.remove("active"));
+  
+  const targetTab = document.querySelector(`.tab[data-page="${pageId}"]`);
+  const targetPage = document.getElementById(pageId);
+  
+  if (targetTab && targetPage) {
+    targetTab.classList.add("active");
+    targetPage.classList.add("active");
+    location.hash = pageId;
+    localStorage.setItem("activeTab", pageId);
+
+    if (pageId === "recipes") renderRecipes();
+    if (pageId === "calendar") renderCalendar();
+    if (pageId === "ledger") renderLedger();
+    if (pageId === "expiry") renderExpiryList();
+    if (pageId === "random") renderRandomFilters();
+  }
+}
+
+document.querySelectorAll(".tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    switchTab(btn.dataset.page);
+  });
+});
+
+window.renderCategoryTree = () => {
+  const box = document.getElementById("categoryTree");
+  if (!box) return;
+  box.innerHTML = "";
+
+  ["전체", ...orderedCategories()].forEach(cat => {
+    const row = document.createElement("div");
+    row.className = "category-row";
+
+    const b = document.createElement("button");
+    b.className = `category-btn ${selectedCategory === cat ? "selected" : ""}`;
+    b.innerHTML = cat === "전체" ? window.esc(cat) : `<span class="chev">${collapsed[cat] ? "▶" : "▼"}</span>${window.esc(cat)}`;
+    b.onclick = () => selectCategory(cat);
+
+    row.appendChild(b);
+    box.appendChild(row);
+
+    if (cat !== "전체" && !collapsed[cat]) {
+      const sub = document.createElement("div");
+      sub.className = "subcats";
+
+      (categories[cat] || []).forEach(t => {
+        const sb = document.createElement("button");
+        sb.className = `subcat-btn ${selectedCategory === cat && selectedType === t ? "selected" : ""}`;
+        sb.textContent = t;
+        sb.onclick = () => {
+          selectedCategory = cat;
+          selectedType = t;
+          recipePage = 1;
+          renderCategoryTree();
+          renderRecipes();
+        };
+        sub.appendChild(sb);
+      });
+      box.appendChild(sub);
+    }
+  });
+};
+
+window.selectCategory = cat => {
+  if (cat === "전체") {
+    selectedCategory = "전체";
+    selectedType = null;
+  } else {
+    selectedCategory = cat;
+    selectedType = null;
+    collapsed[cat] = !collapsed[cat];
+  }
+  recipePage = 1;
+  renderCategoryTree();
+  renderRecipes();
+};
+
+window.addCategory = () => {
+  const n = prompt("추가할 대분류 이름을 입력하세요.");
+  if (!n?.trim() || categories[n.trim()]) return;
+  categories[n.trim()] = ["외식"];
+  saveData();
+  renderCategoryTree();
+};
+
+window.resetCategories = () => {
+  if (confirm("카테고리를 기본값으로 복원할까요?")) {
+    categories = structuredClone(defaultCategories);
+    saveData();
+    renderCategoryTree();
+    renderRecipes();
+  }
+};
+
+window.openRecipeModal = (editId = null) => {
+  const r = recipes.find(x => x.id === editId);
+  const cat = r?.category || lastSelectedCategory || "한식";
+  const type = r?.type || lastSelectedType || (categories[cat]?.[0] || "");
+
+  window.openModal(`
+    <h3>${r ? "요리 수정" : "요리 등록"}</h3>
+    <form id="recipeForm" onsubmit="event.preventDefault(); processSaveRecipe('${editId || ""}');">
+      <div class="inline">
+        <div class="form-row">
+          <label>카테고리</label>
+          <select id="rCat">
+            ${orderedCategories().map(c => `
+              <option value="${window.esc(c)}" ${c === cat ? "selected" : ""}>
+                ${window.esc(c)}
+              </option>
+            `).join("")}
+          </select>
+        </div>
+        <div class="form-row">
+          <label>종류</label>
+          <select id="rType"></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>요리 이름</label>
+        <input id="rName" value="${window.esc(r?.name || "")}" placeholder="예: 김치찌개" autocomplete="off">
+      </div>
+      <div class="form-row">
+        <label>맵기 정도</label>
+        <select id="rSpice">
+          ${spiceLevels.map(s => `
+            <option ${s === (r?.spicy || "안매움") ? "selected" : ""}>${s}</option>
+          `).join("")}
+        </select>
+      </div>
+      <div class="form-row">
+        <label>재료</label>
+        <input id="rIng" value="${window.esc(r?.ingredients || "")}" placeholder="예: 돼지고기, 김치, 대파" autocomplete="off">
+      </div>
+      <div class="form-row">
+        <label>레시피 링크</label>
+        <input id="rLink" type="url" value="${window.esc(r?.link || "")}" placeholder="https://example.com/recipe" autocomplete="off">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="secondary" onclick="closeModal()">취소</button>
+        <button type="submit" class="primary">${r ? "수정" : "등록"}</button>
+      </div>
+    </form>
+  `);
+
+  const sel = document.getElementById("rCat");
+  const typeSel = document.getElementById("rType");
+
+  function sync() {
+    typeSel.innerHTML = (categories[sel.value] || []).map(t => `
+      <option value="${window.esc(t)}" ${t === type ? "selected" : ""}>
+        ${window.esc(t)}
+      </option>
+    `).join("");
+  }
+  sel.addEventListener("change", sync);
+  sync();
+};
+
+window.processSaveRecipe = (id) => {
+  const name = document.getElementById("rName").value.trim();
+  if (!name) {
+    alert("요리 이름을 입력해주세요.");
+    return;
+  }
+
+  const isDuplicate = recipes.some(r => r.name === name && r.id !== id);
+  if (isDuplicate) {
+    window.openModal(`
+      <h3>중복 요리 알림</h3>
+      <p style="font-size:14px; margin:20px 0;">이미 등록된 요리입니다. 추가로 등록하시겠습니까?</p>
+      <div class="modal-actions">
+        <button class="secondary" onclick="openRecipeModal('${id || ""}')">취소</button>
+        <button class="primary" onclick="executeSaveRecipe('${id || ""}')">등록</button>
+      </div>
+    `);
+  } else {
+    executeSaveRecipe(id);
+  }
+};
+
+window.executeSaveRecipe = (id) => {
+  const category = document.getElementById("rCat")?.value || lastSelectedCategory;
+  const type = document.getElementById("rType")?.value || lastSelectedType;
+  const name = document.getElementById("rName")?.value.trim() || "";
+  const spicy = document.getElementById("rSpice")?.value || "안매움";
+  const ingredients = document.getElementById("rIng")?.value.trim() || "";
+  const rawLink = document.getElementById("rLink")?.value.trim() || "";
+  const link = normalizeUrl(rawLink);
+
+  lastSelectedCategory = category;
+  lastSelectedType = type;
+
+  if (id) {
+    const r = recipes.find(x => x.id === id);
+    if (r) Object.assign(r, { category, type, name, spicy, ingredients, link });
+  } else {
+    recipes.push({
+      id: crypto.randomUUID(), category, type, name, spicy, ingredients, link, created: Date.now()
+    });
+  }
+
+  saveData();
+  window.closeModal();
+  renderRecipes();
+};
+
+window.deleteRecipe = id => {
+  if (confirm("이 요리를 삭제할까요?")) {
+    recipes = recipes.filter(r => r.id !== id);
+    saveData();
+    renderRecipes();
+  }
+};
+
+window.renderRecipes = () => {
+  renderCategoryTree();
+  const q = document.getElementById("searchInput")?.value.trim().toLowerCase() || "";
+  const st = document.getElementById("searchType")?.value || "name";
+
+  let arr = recipes.filter(r =>
+    (selectedCategory === "전체" || r.category === selectedCategory) &&
+    (selectedType == null || r.type === selectedType)
+  );
+
+  if (q) {
+    arr = arr.filter(r => String(st === "name" ? r.name : r.ingredients || "").toLowerCase().includes(q));
+  }
+
+  const sortVal = document.getElementById("sortOrder")?.value || "new";
+  if (sortVal === "new") {
+    arr.sort((a, b) => b.created - a.created);
+  } else if (sortVal === "old") {
+    arr.sort((a, b) => a.created - b.created);
+  } else if (sortVal === "abc") {
+    arr = sortKorean(arr, "name");
+  }
+
+  const isMobile = window.innerWidth <= 768;
+  const per = isMobile ? 8 : 6;
+  const total = Math.max(1, Math.ceil(arr.length / per));
+  recipePage = Math.min(recipePage, total);
+  const slice = arr.slice((recipePage - 1) * per, recipePage * per);
+
+  document.getElementById("recipeCount").textContent = `총 ${arr.length}개`;
+  const list = document.getElementById("recipeList");
+
+  list.innerHTML = slice.length ? slice.map(r => `
+    <article class="recipe-card">
+      <div class="recipe-title">${window.esc(r.name)}</div>
+      <div class="spicy">${window.spicyEmoji(r.spicy)}</div>
+      <div class="recipe-meta">
+        <strong>${window.esc(r.category)} · ${window.esc(r.type)}</strong> · ${window.esc(r.spicy)}
+      </div>
+      <div class="ingredients">🥕 ${window.esc(r.ingredients || "재료 미입력")}</div>
+      ${r.link ? `<a class="recipe-link" href="${window.esc(r.link)}" target="_blank" rel="noopener noreferrer">🔗 레시피 보기</a>` : ""}
+      <div class="card-actions">
+        <button onclick="openRecipeModal('${r.id}')">수정</button>
+        <button onclick="deleteRecipe('${r.id}')">삭제</button>
+      </div>
+    </article>
+  `).join("") : `<div class="empty" style="grid-column:1/-1">조건에 맞는 요리가 없어요.</div>`;
+
+  const paginationElem = document.getElementById("recipePagination");
+  if (isMobile) {
+    paginationElem.innerHTML = `
+      <button onclick="setPage(${recipePage - 1})" ${recipePage <= 1 ? "disabled" : ""}>◀</button>
+      <span class="page-num-info">${recipePage} / ${total}</span>
+      <button onclick="setPage(${recipePage + 1})" ${recipePage >= total ? "disabled" : ""}>▶</button>
+    `;
+  } else {
+    let startPage = Math.floor((recipePage - 1) / 5) * 5 + 1;
+    let endPage = Math.min(startPage + 4, total);
+
+    let html = `<button onclick="setPage(${recipePage - 1})" ${recipePage <= 1 ? "disabled" : ""}>◀</button>`;
+    for (let i = startPage; i <= endPage; i++) {
+      html += `<button class="${i === recipePage ? "current" : ""}" onclick="setPage(${i})">${i}</button>`;
+    }
+    html += `<button onclick="setPage(${recipePage + 1})" ${recipePage >= total ? "disabled" : ""}>▶</button>`;
+    paginationElem.innerHTML = html;
+  }
+};
+
+window.addEventListener("resize", () => {
+  renderRecipes();
+});
+
+window.setPage = p => {
+  recipePage = p;
+  renderRecipes();
+};
+
+window.clearSearch = () => {
+  const input = document.getElementById("searchInput");
+  if (input) input.value = "";
+  recipePage = 1;
+  renderRecipes();
+};
+
+function formatDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function formatMonth(d) {
+  return `${d.getFullYear()}년 ${d.getMonth() + 1}월`;
+}
+
+const fixedSlotOrder = ["도시락", "아침", "점심", "저녁"];
+
+window.renderCalendar = () => {
+  const title = document.getElementById("monthTitle");
+  if (!title) return;
+  title.textContent = formatMonth(currentMonth);
+
+  const grid = document.getElementById("calendarGrid");
+  const y = currentMonth.getFullYear();
+  const m = currentMonth.getMonth();
+  const first = new Date(y, m, 1);
+  const last = new Date(y, m + 1, 0);
+  const start = first.getDay();
+  const days = last.getDate();
+
+  let h = ["일", "월", "화", "수", "목", "금", "토"].map(x => `<div class="dow">${x}</div>`).join("");
+
+  for (let i = 0; i < start; i++) {
+    h += `<div class="day"></div>`;
+  }
+
+  const today = formatDate(new Date());
+
+  for (let n = 1; n <= days; n++) {
+    const date = new Date(y, m, n);
+    const key = formatDate(date);
+    const list = meals[key] || [];
+    const grouped = {};
+
+    list.forEach((x, origIdx) => {
+      const slot = x.slot || "기타";
+      (grouped[slot] ??= []).push({ name: x.name, origIdx });
+    });
+
+    const sortedSlots = Object.keys(grouped).sort((a, b) => {
+      let ia = fixedSlotOrder.indexOf(a);
+      let ib = fixedSlotOrder.indexOf(b);
+      if (ia < 0) ia = 99;
+      if (ib < 0) ib = 99;
+      return ia - ib || a.localeCompare(b, "ko");
+    });
+
+    let dayHtml = "";
+    sortedSlots.forEach(slot => {
+      const cls = slot === "아침" ? "meal-breakfast" : slot === "점심" ? "meal-lunch" : slot === "저녁" ? "meal-dinner" : "meal-custom";
+      dayHtml += `
+        <div class="meal-group" onclick="event.stopPropagation(); openMealModal('${key}', '${window.esc(slot)}')">
+          <div class="meal-group-header ${cls}">${window.esc(slot)}</div>
+          <div class="meal-group-body ${cls}">
+            ${grouped[slot].map(item => `
+              <div class="meal-item ${recipes.some(r => r.name === item.name) ? "registered" : ""}">
+                <span class="meal-item-text" title="${window.esc(item.name)}">${window.esc(item.name)}</span>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `;
+    });
+
+    h += `
+      <div class="day ${key === today ? "today" : ""}" onclick="openMealModal('${key}')">
+        <div class="date-num">${n}</div>
+        ${dayHtml}
+      </div>
+    `;
+  }
+  grid.innerHTML = h;
+};
+
+window.changeMonth = n => {
+  currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + n, 1);
+  renderCalendar();
+};
+
+window.goToday = () => {
+  const d = new Date();
+  currentMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+  renderCalendar();
+};
+
+window.openMonthModal = () => {
+  const y = currentMonth.getFullYear();
+  const m = currentMonth.getMonth();
+
+  window.openModal(`
+    <h3>원하는 월로 이동</h3>
+    <div class="yearmonth-picker">
+      <select id="pickYear">
+        ${Array.from({ length: 11 }, (_, i) => {
+          let yy = y - 5 + i;
+          return `<option ${yy === y ? "selected" : ""}>${yy}</option>`;
+        }).join("")}
+      </select>
+      <select id="pickMonth">
+        ${Array.from({ length: 12 }, (_, i) => `
+          <option value="${i}" ${i === m ? "selected" : ""}>${i + 1}월</option>
+        `).join("")}
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="secondary" onclick="closeModal()">취소</button>
+      <button class="primary" onclick="jumpMonth()">이동</button>
+    </div>
+  `);
+};
+
+window.jumpMonth = () => {
+  currentMonth = new Date(+document.getElementById("pickYear").value, +document.getElementById("pickMonth").value, 1);
+  window.closeModal();
+  renderCalendar();
+};
+
+window.downloadCalendarImage = () => {
+  const t = document.getElementById("calendarCaptureArea");
+  html2canvas(t, { scale: 2, backgroundColor: "#fff" }).then(c => {
+    const a = document.createElement("a");
+    a.download = `식단_${currentMonth.getFullYear()}년_${currentMonth.getMonth() + 1}월.png`;
+    a.href = c.toDataURL("image/png");
+    a.click();
+  }).catch(e => alert("이미지 저장 중 오류가 발생했습니다: " + e.message));
+};
+
+window._mealFormDate = formatDate(new Date());
+window._mealSlot = "도시락";
+window._mealInputMode = "direct";
+window._mealSelectedRecipeIds = [];
+
+function getCurrentMealInputData() {
+  if (window._mealInputMode === "direct") {
+    const inputs = document.querySelectorAll(".direct-meal-input");
+    return Array.from(inputs).map(i => i.value.trim()).filter(Boolean);
+  } else {
+    return window._mealSelectedRecipeIds
+      .map(id => recipes.find(r => r.id === id)?.name)
+      .filter(Boolean);
+  }
+}
+
+window.openMealModal = (targetDate = null, targetSlot = null, defaultRecipeName = null) => {
+  const today = formatDate(new Date());
+  const savedDate = targetDate || window._mealFormDate || today;
+  const savedSlot = targetSlot || window._mealSlot || "도시락";
+
+  window._mealSlot = savedSlot;
+  window._mealFormDate = savedDate;
+  window._mealSelectedRecipeIds = [];
+
+  if (defaultRecipeName) {
+    const matched = recipes.find(r => r.name === defaultRecipeName);
+    if (matched) {
+      window._mealInputMode = "list";
+      window._mealSelectedRecipeIds = [matched.id];
+    } else {
+      window._mealInputMode = "direct";
+    }
+  }
+
+  window.openModal(`
+    <h3>식단 수정 / 추가</h3>
+    <div class="form-row">
+      <label>날짜</label>
+      <input id="mDate" type="date" value="${savedDate}" onchange="window._mealFormDate=this.value">
+    </div>
+    <div class="form-row">
+      <label>식사 항목</label>
+      <div id="mealSlotButtons" class="picker-grid">
+        ${["도시락", "아침", "점심", "저녁"].map(x => `
+          <button type="button" class="filter-pill ${savedSlot === x ? "active" : ""}" onclick="selectMealSlot(this, '${window.esc(x)}')">${x}</button>
+        `).join("")}
+      </div>
+    </div>
+    <div class="form-row">
+      <label>기타 추가 항목</label>
+      <div class="custom-meals" id="customMeals">
+        ${customMealTypes.map((x, i) => `
+          <div class="custom-item">
+            <button type="button" class="minus" onclick="removeCustomType(${i})">−</button>
+            <span style="flex:1">${window.esc(x)}</span>
+            <button type="button" class="filter-pill ${savedSlot === x ? "active" : ""}" onclick="selectMealSlot(this, '${window.esc(x)}')">${window.esc(x)}</button>
+          </div>
+        `).join("")}
+        <button type="button" class="add-custom" onclick="addCustomType()">＋ 기타 항목 추가</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>요리 이름</label>
+      <div class="picker-grid" style="grid-template-columns:1fr 1fr;margin-bottom:8px">
+        <button type="button" id="mealModeDirect" class="filter-pill ${window._mealInputMode !== "list" ? "active" : ""}" onclick="setMealInputMode('direct')">직접 입력</button>
+        <button type="button" id="mealModeList" class="filter-pill ${window._mealInputMode === "list" ? "active" : ""}" onclick="setMealInputMode('list')">등록 요리에서 선택</button>
+      </div>
+      <div id="mealDirectBox" style="display:${window._mealInputMode === "list" ? "none" : "block"}">
+        <div id="directMealRows"></div>
+        <button type="button" class="add-custom" onclick="addDirectMealRow('')">＋ 요리 추가</button>
+      </div>
+      <div id="mealListBox" style="display:${window._mealInputMode === "list" ? "block" : "none"}">
+        <div class="inline" style="margin-bottom:8px">
+          <select id="mCat" onchange="updateMealTypeOptions(this.value)">
+            ${orderedCategories().map(c => `<option value="${window.esc(c)}">${window.esc(c)}</option>`).join("")}
+          </select>
+          <select id="mType" onchange="updateMealRecipeList()"></select>
+        </div>
+        <select id="mRecipeSelect" onchange="autoAddSelectedRecipe()" style="width:100%;height:36px;border:1px solid #ccc;border-radius:6px;padding:0 8px">
+          <option value="">요리를 선택하세요 (선택시 자동 추가)</option>
+        </select>
+        <div id="selectedRecipeRows" style="margin-top:8px"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="secondary" onclick="closeModal()">취소</button>
+      <button type="button" class="primary" onclick="saveMeal()">저장</button>
+    </div>
+  `);
+
+  const existing = (meals[savedDate] || []).filter(m => m.slot === savedSlot);
+
+  if (window._mealInputMode === "direct") {
+    if (defaultRecipeName) {
+      addDirectMealRow(defaultRecipeName);
+    } else if (existing.length) {
+      existing.forEach(m => addDirectMealRow(m.name));
+    } else {
+      addDirectMealRow();
+    }
+  }
+
+  updateMealTypeOptions(document.getElementById("mCat")?.value || orderedCategories()[0] || "한식");
+
+  if (window._mealInputMode === "list") {
+    if (!defaultRecipeName && existing.length) {
+      existing.forEach(m => {
+        const r = recipes.find(x => x.name === m.name);
+        if (r && !window._mealSelectedRecipeIds.includes(r.id)) {
+          window._mealSelectedRecipeIds.push(r.id);
+        }
+      });
+    }
+    renderSelectedRecipeRows();
+  }
+};
+
+window.selectMealSlot = (btn, slot) => {
+  document.querySelectorAll("#mealSlotButtons .filter-pill, #customMeals .filter-pill").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  window._mealSlot = slot;
+
+  const date = document.getElementById("mDate")?.value || window._mealFormDate;
+  const box = document.getElementById("directMealRows");
+
+  if (box && window._mealInputMode === "direct") {
+    box.innerHTML = "";
+    const ex = (meals[date] || []).filter(m => m.slot === slot);
+    if (ex.length) {
+      ex.forEach(m => addDirectMealRow(m.name));
+    } else {
+      addDirectMealRow();
+    }
+  }
+};
+
+window.addCustomType = () => {
+  const n = prompt("추가할 항목 이름을 입력하세요. (예: 간식, 야식)");
+  if (!n?.trim() || customMealTypes.includes(n.trim())) return;
+  customMealTypes.push(n.trim());
+  saveData();
+  openMealModal(window._mealFormDate, window._mealSlot);
+};
+
+window.removeCustomType = i => {
+  customMealTypes.splice(i, 1);
+  saveData();
+  openMealModal(window._mealFormDate, window._mealSlot);
+};
+
+window.setMealInputMode = mode => {
+  if (window._mealInputMode === mode) return;
+
+  const currentNames = getCurrentMealInputData();
+
+  window._mealInputMode = mode;
+  document.getElementById("mealDirectBox").style.display = mode === "direct" ? "block" : "none";
+  document.getElementById("mealListBox").style.display = mode === "list" ? "block" : "none";
+  document.getElementById("mealModeDirect").classList.toggle("active", mode === "direct");
+  document.getElementById("mealModeList").classList.toggle("active", mode === "list");
+
+  if (mode === "direct") {
+    const box = document.getElementById("directMealRows");
+    if (box) box.innerHTML = "";
+    if (currentNames.length) {
+      currentNames.forEach(n => addDirectMealRow(n));
+    } else {
+      addDirectMealRow();
+    }
+  } else {
+    window._mealSelectedRecipeIds = [];
+    currentNames.forEach(n => {
+      let r = recipes.find(x => x.name === n);
+      if (!r) {
+        r = { id: crypto.randomUUID(), category: "한식", type: "메인요리", name: n, spicy: "안매움", ingredients: "", link: "", created: Date.now() };
+        recipes.push(r);
+      }
+      if (!window._mealSelectedRecipeIds.includes(r.id)) {
+        window._mealSelectedRecipeIds.push(r.id);
+      }
+    });
+    updateMealRecipeList();
+    renderSelectedRecipeRows();
+  }
+};
+
+window.addDirectMealRow = (val = "") => {
+  const box = document.getElementById("directMealRows");
+  if (!box) return;
+
+  const row = document.createElement("div");
+  row.className = "custom-item";
+
+  const input = document.createElement("input");
+  input.className = "direct-meal-input";
+  input.value = val;
+  input.placeholder = "요리 이름 입력";
+  input.autocomplete = "off";
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addDirectMealRow("");
+    }
+  });
+
+  const del = document.createElement("button");
+  del.type = "button";
+  del.className = "minus";
+  del.textContent = "−";
+  del.onclick = () => row.remove();
+
+  row.append(input, del);
+  box.appendChild(row);
+  if (!val) input.focus();
+};
+
+window.updateMealTypeOptions = cat => {
+  const s = document.getElementById("mType");
+  if (!s) return;
+  s.innerHTML = `<option value="">전체 종류</option>` + (categories[cat] || []).map(t => `
+    <option value="${window.esc(t)}">${window.esc(t)}</option>
+  `).join("");
+  updateMealRecipeList();
+};
+
+window.updateMealRecipeList = () => {
+  const cat = document.getElementById("mCat")?.value;
+  const type = document.getElementById("mType")?.value;
+  const sel = document.getElementById("mRecipeSelect");
+  if (!sel) return;
+
+  let arr = recipes.filter(r => r.category === cat && (!type || r.type === type));
+  arr = sortKorean(arr);
+
+  sel.innerHTML = `<option value="">요리를 선택하세요 (선택시 자동 추가)</option>` + arr.map(r => `
+    <option value="${r.id}">${window.esc(r.name)}</option>
+  `).join("");
+};
+
+function renderSelectedRecipeRows() {
+  const box = document.getElementById("selectedRecipeRows");
+  if (!box) return;
+  box.innerHTML = "";
+
+  window._mealSelectedRecipeIds.forEach(id => {
+    const r = recipes.find(x => x.id === id);
+    if (!r) return;
+
+    const item = document.createElement("div");
+    item.className = "custom-item";
+    item.innerHTML = `
+      <span style="flex:1">🍳 ${window.esc(r.name)}</span>
+      <button type="button" class="minus" onclick="removeSelectedRecipe('${id}')">−</button>
+    `;
+    box.appendChild(item);
+  });
+}
+
+window.autoAddSelectedRecipe = () => {
+  const sel = document.getElementById("mRecipeSelect");
+  const id = sel?.value;
+  if (!id) return;
+  if (!window._mealSelectedRecipeIds.includes(id)) {
+    window._mealSelectedRecipeIds.push(id);
+    renderSelectedRecipeRows();
+  }
+  sel.value = "";
+};
+
+window.removeSelectedRecipe = id => {
+  window._mealSelectedRecipeIds = window._mealSelectedRecipeIds.filter(x => x !== id);
+  renderSelectedRecipeRows();
+};
+
+window.saveMeal = () => {
+  const date = document.getElementById("mDate").value;
+  window._mealFormDate = date;
+
+  let names = getCurrentMealInputData();
+
+  if (!date) {
+    alert("날짜를 선택해 주세요.");
+    return;
+  }
+
+  pushMealHistory();
+  if (!meals[date]) meals[date] = [];
+  meals[date] = meals[date].filter(m => m.slot !== window._mealSlot);
+
+  names.forEach(name => meals[date].push({ slot: window._mealSlot, name }));
+  if (!meals[date].length) delete meals[date];
+
+  saveData();
+  window.closeModal();
+  renderCalendar();
+};
+
+function pushMealHistory() {
+  mealUndoStack.push(JSON.parse(JSON.stringify(meals)));
+  if (mealUndoStack.length > 30) mealUndoStack.shift();
+  mealRedoStack = [];
+  updateMealHistoryButtons();
+}
+
+function updateMealHistoryButtons() {
+  const undo = document.getElementById("undoMealBtn");
+  const redo = document.getElementById("redoMealBtn");
+  if (undo) undo.disabled = !mealUndoStack.length;
+  if (redo) redo.disabled = !mealRedoStack.length;
+}
+
+window.undoMealChange = () => {
+  if (!mealUndoStack.length) return;
+  mealRedoStack.push(JSON.parse(JSON.stringify(meals)));
+  meals = mealUndoStack.pop();
+  saveData();
+  renderCalendar();
+  updateMealHistoryButtons();
+};
+
+window.redoMealChange = () => {
+  if (!mealRedoStack.length) return;
+  mealUndoStack.push(JSON.parse(JSON.stringify(meals)));
+  meals = mealRedoStack.pop();
+  saveData();
+  renderCalendar();
+  updateMealHistoryButtons();
+};
+
+window.exportRecipesToExcel = () => {
+  if (!recipes.length) {
+    alert("출력할 식단 데이터가 없습니다.");
+    return;
+  }
+  const data = recipes.map(r => ({
+    "카테고리": r.category || "",
+    "종류": r.type || "",
+    "요리명": r.name || "",
+    "맵기": r.spicy || "",
+    "재료": r.ingredients || "",
+    "레시피링크": r.link || ""
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "식단리스트");
+  XLSX.writeFile(wb, "식단리스트.xlsx");
+};
+
+window.exportCalendarToExcel = () => {
+  const rows = [];
+  Object.keys(meals).sort().forEach(date => {
+    meals[date].forEach(m => {
+      rows.push({
+        "날짜": date,
+        "구분": m.slot,
+        "요리명": m.name
+      });
+    });
+  });
+  if (!rows.length) {
+    alert("출력할 월간식단 데이터가 없습니다.");
+    return;
+  }
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "월간식단");
+  XLSX.writeFile(wb, "월간식단.xlsx");
+};
+
+window.exportLedgerToExcel = () => {
+  if (!ledgerItems.length) {
+    alert("출력할 가계부 데이터가 없습니다.");
+    return;
+  }
+  const data = ledgerItems.map(item => ({
+    "구분": item.category || "",
+    "재료명": item.name || "",
+    "중량/개수": item.quantity || "",
+    "가격": item.price || 0,
+    "구매일": item.purchaseDate || "",
+    "구매처": item.store || "",
+    "유통기한": item.expiryDate || "",
+    "사용완료": item.completed ? "완료" : "미완료",
+    "링크": item.link || ""
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "식재료가계부");
+  XLSX.writeFile(wb, "식재료가계부.xlsx");
+};
+
+window.openLedgerModal = (editId = null) => {
+  const item = ledgerItems.find(x => x.id === editId);
+  const todayStr = formatDate(new Date());
+
+  window.openModal(`
+    <h3>${item ? "지출 수정" : "지출 등록"}</h3>
+    <form id="ledgerForm" onsubmit="event.preventDefault(); saveLedgerItem('${editId || ""}');">
+      <div class="inline">
+        <div class="form-row">
+          <label>구분</label>
+          <select id="lCategory">
+            <option ${item?.category === "채소" ? "selected" : ""}>채소</option>
+            <option ${item?.category === "정육/계란" ? "selected" : ""}>정육/계란</option>
+            <option ${item?.category === "수산/해산물" ? "selected" : ""}>수산/해산물</option>
+            <option ${item?.category === "과일" ? "selected" : ""}>과일</option>
+            <option ${item?.category === "가공/간편식" ? "selected" : ""}>가공/간편식</option>
+            <option ${item?.category === "양념/조미료" ? "selected" : ""}>양념/조미료</option>
+            <option ${item?.category === "음료/디저트" ? "selected" : ""}>음료/디저트</option>
+            <option ${item?.category === "기타" ? "selected" : ""}>기타</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>재료명</label>
+          <input id="lName" value="${window.esc(item?.name || "")}" placeholder="예: 양파" autocomplete="off">
+        </div>
+      </div>
+      <div class="inline">
+        <div class="form-row">
+          <label>중량/개수</label>
+          <input id="lQuantity" value="${window.esc(item?.quantity || "")}" placeholder="예: 1망, 500g" autocomplete="off">
+        </div>
+        <div class="form-row">
+          <label>가격 (원)</label>
+          <input id="lPrice" type="number" value="${item?.price || ""}" placeholder="예: 3000" autocomplete="off">
+        </div>
+      </div>
+      <div class="inline">
+        <div class="form-row">
+          <label>구매일</label>
+          <input id="lPurchaseDate" type="date" value="${item?.purchaseDate || todayStr}">
+        </div>
+        <div class="form-row">
+          <label>구매처</label>
+          <input id="lStore" value="${window.esc(item?.store || "")}" placeholder="예: 쿠팡, 이마트" autocomplete="off">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>유통기한</label>
+        <input id="lExpiryDate" type="date" value="${item?.expiryDate || ""}">
+      </div>
+      <div class="form-row">
+        <label>링크</label>
+        <input id="lLink" type="url" value="${window.esc(item?.link || "")}" placeholder="https://..." autocomplete="off">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="secondary" onclick="closeModal()">취소</button>
+        <button type="submit" class="primary">${item ? "수정" : "등록"}</button>
+      </div>
+    </form>
+  `);
+};
+
+window.openLedgerStatsModal = () => {
+  const statsMap = {};
+  ledgerItems.forEach(item => {
+    if (!item.purchaseDate) return;
+    const ym = item.purchaseDate.substring(0, 7);
+    statsMap[ym] = (statsMap[ym] || 0) + (item.price || 0);
+  });
+
+  const sortedYM = Object.keys(statsMap).sort().reverse();
+
+  let html = `
+    <h3>월별 식재료 지출 통계</h3>
+    <div style="max-height:300px; overflow-y:auto; margin:15px 0;">
+      <table class="excel-table" style="width:100%;">
+        <thead>
+          <tr>
+            <th>연월</th>
+            <th style="text-align:right;">총 지출 금액</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+  if (!sortedYM.length) {
+    html += `<tr><td colspan="2" style="text-align:center; color:#999;">지출 내역이 없습니다.</td></tr>`;
+  } else {
+    sortedYM.forEach(ym => {
+      const [y, m] = ym.split("-");
+      html += `
+        <tr>
+          <td>${y}년 ${parseInt(m, 10)}월</td>
+          <td style="text-align:right; font-weight:700; color:#1a56a3;">${statsMap[ym].toLocaleString()}원</td>
+        </tr>
+      `;
+    });
+  }
+
+  html += `
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-actions">
+      <button class="primary" onclick="closeModal()">확인</button>
+    </div>
+  `;
+
+  window.openModal(html);
+};
+
+window.saveLedgerItem = id => {
+  const category = document.getElementById("lCategory").value;
+  const name = document.getElementById("lName").value.trim();
+  const quantity = document.getElementById("lQuantity").value.trim();
+  const price = Number(document.getElementById("lPrice").value) || 0;
+  const purchaseDate = document.getElementById("lPurchaseDate").value;
+  const store = document.getElementById("lStore").value.trim();
+  const expiryDate = document.getElementById("lExpiryDate").value;
+  const rawLink = document.getElementById("lLink").value.trim();
+  const link = normalizeUrl(rawLink);
+
+  if (!name) {
+    alert("재료명을 입력해주세요.");
+    return;
+  }
+
+  if (id) {
+    const item = ledgerItems.find(x => x.id === id);
+    if (item) Object.assign(item, { category, name, quantity, price, purchaseDate, store, expiryDate, link });
+  } else {
+    ledgerItems.push({
+      id: crypto.randomUUID(), category, name, quantity, price, purchaseDate, store, expiryDate, link, completed: false, created: Date.now()
+    });
+  }
+
+  saveData();
+  window.closeModal();
+  renderLedger();
+  renderExpiryList();
+};
+
+window.deleteLedgerItem = id => {
+  if (confirm("이 항목을 삭제하시겠습니까?")) {
+    ledgerItems = ledgerItems.filter(x => x.id !== id);
+    saveData();
+    renderLedger();
+    renderExpiryList();
+  }
+};
+
+window.toggleLedgerCompleted = id => {
+  const item = ledgerItems.find(x => x.id === id);
+  if (item) {
+    item.completed = !item.completed;
+    saveData();
+    renderLedger();
+    renderExpiryList();
+  }
+};
+
+window.changeLedgerMonth = n => {
+  currentLedgerMonth = new Date(currentLedgerMonth.getFullYear(), currentLedgerMonth.getMonth() + n, 1);
+  renderLedger();
+};
+
+window.openLedgerMonthModal = () => {
+  const y = currentLedgerMonth.getFullYear();
+  const m = currentLedgerMonth.getMonth();
+
+  window.openModal(`
+    <h3>원하는 달로 이동</h3>
+    <div class="yearmonth-picker">
+      <select id="pickLedgerYear">
+        ${Array.from({ length: 11 }, (_, i) => {
+          let yy = y - 5 + i;
+          return `<option ${yy === y ? "selected" : ""}>${yy}</option>`;
+        }).join("")}
+      </select>
+      <select id="pickLedgerMonth">
+        ${Array.from({ length: 12 }, (_, i) => `
+          <option value="${i}" ${i === m ? "selected" : ""}>${i + 1}월</option>
+        `).join("")}
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="secondary" onclick="closeModal()">취소</button>
+      <button class="primary" onclick="jumpLedgerMonth()">이동</button>
+    </div>
+  `);
+};
+
+window.jumpLedgerMonth = () => {
+  currentLedgerMonth = new Date(+document.getElementById("pickLedgerYear").value, +document.getElementById("pickLedgerMonth").value, 1);
+  window.closeModal();
+  renderLedger();
+};
+
+window.renderLedger = () => {
+  const tbody = document.getElementById("ledgerTableBody");
+  const mobileList = document.getElementById("ledgerMobileCardList");
+  if (!tbody || !mobileList) return;
+
+  const y = currentLedgerMonth.getFullYear();
+  const m = currentLedgerMonth.getMonth();
+  const currentYM = `${y}-${String(m + 1).padStart(2, "0")}`;
+
+  const titleElem = document.getElementById("ledgerMonthTitle");
+  if (titleElem) {
+    titleElem.textContent = `${y}년 ${m + 1}월`;
+  }
+
+  let filtered = ledgerItems.filter(item => item.purchaseDate && item.purchaseDate.startsWith(currentYM));
+  
+  let currentMonthTotal = 0;
+  filtered.forEach(item => {
+    currentMonthTotal += (item.price || 0);
+  });
+
+  const displayElem = document.getElementById("monthlyTotalDisplay");
+  if (displayElem) {
+    displayElem.textContent = `${m + 1}월 식재료 총구매비: ${currentMonthTotal.toLocaleString()}원`;
+  }
+
+  const sortType = document.getElementById("ledgerSortOrder")?.value || "purchaseDesc";
+
+  const sortItems = (arr) => {
+    if (sortType === "purchaseAsc") {
+      return arr.sort((a, b) => new Date(a.purchaseDate || 0) - new Date(b.purchaseDate || 0));
+    } else if (sortType === "purchaseDesc") {
+      return arr.sort((a, b) => new Date(b.purchaseDate || 0) - new Date(a.purchaseDate || 0));
+    } else if (sortType === "abc") {
+      return arr.sort((a, b) => (a.name || "").localeCompare(b.name || "", "ko"));
+    } else if (sortType === "store") {
+      return arr.sort((a, b) => (a.store || "").localeCompare(b.store || "", "ko"));
+    } else if (sortType === "recipeAvailable") {
+      return arr.sort((a, b) => {
+        const aHas = recipes.some(r => (r.ingredients || "").includes(a.name) || r.name.includes(a.name));
+        const bHas = recipes.some(r => (r.ingredients || "").includes(b.name) || r.name.includes(b.name));
+        if (aHas && !bHas) return -1;
+        if (!aHas && bHas) return 1;
+        return (a.name || "").localeCompare(b.name || "", "ko");
+      });
+    }
+    return arr;
+  };
+
+  let activeItems = filtered.filter(x => !x.completed);
+  let completedItems = filtered.filter(x => x.completed);
+
+  activeItems = sortItems(activeItems);
+  completedItems = sortItems(completedItems);
+
+  const sortedList = [...activeItems, ...completedItems];
+
+  const countElem = document.getElementById("ledgerCount");
+  if (countElem) countElem.textContent = `총 ${sortedList.length}개`;
+
+  tbody.innerHTML = "";
+  mobileList.innerHTML = "";
+
+  if (!sortedList.length) {
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:#999; padding:20px;">${currentYM} 내역이 없습니다.</td></tr>`;
+    mobileList.innerHTML = `<div class="empty">${currentYM} 내역이 없습니다.</div>`;
+  } else {
+    sortedList.forEach(item => {
+      const tr = document.createElement("tr");
+      if (item.completed) {
+        tr.className = "completed-row";
+      }
+
+      tr.innerHTML = `
+        <td style="text-align:center;">
+          <input type="checkbox" ${item.completed ? "checked" : ""} onchange="toggleLedgerCompleted('${item.id}')">
+        </td>
+        <td>${window.esc(item.category)}</td>
+        <td><span class="clickable-ingredient" onclick="showRecipesByIngredient('${window.esc(item.name)}')">${window.esc(item.name)}</span></td>
+        <td>${window.esc(item.quantity || "-")}</td>
+        <td>${(item.price || 0).toLocaleString()}원</td>
+        <td>${window.esc(item.purchaseDate || "-")}</td>
+        <td>${window.esc(item.store || "-")}</td>
+        <td>${window.esc(item.expiryDate || "-")}</td>
+        <td>${item.link ? `<a href="${window.esc(item.link)}" target="_blank" style="color:#1769aa;text-decoration:underline">이동</a>` : "-"}</td>
+        <td>
+          <button class="mini-btn" onclick="openLedgerModal('${item.id}')">수정</button>
+          <button class="mini-btn" onclick="deleteLedgerItem('${item.id}')">삭제</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+
+      const card = document.createElement("div");
+      card.className = `mobile-card-item ${item.completed ? "completed-card" : ""}`;
+      card.innerHTML = `
+        <div class="mobile-card-header">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <input type="checkbox" ${item.completed ? "checked" : ""} onchange="toggleLedgerCompleted('${item.id}')">
+            <span class="clickable-ingredient" onclick="showRecipesByIngredient('${window.esc(item.name)}')">${window.esc(item.name)}</span>
+          </div>
+          <span class="badge">${window.esc(item.category)}</span>
+        </div>
+        <div class="mobile-card-body">
+          <div>💰 <strong>${(item.price || 0).toLocaleString()}원</strong> (${window.esc(item.quantity || "-")})</div>
+          <div>🏪 ${window.esc(item.store || "구매처 미입력")}</div>
+          <div>📅 구매: ${window.esc(item.purchaseDate || "-")}</div>
+          <div>⌛ 유통: ${window.esc(item.expiryDate || "-")}</div>
+        </div>
+        <div class="mobile-card-footer">
+          <div>${item.link ? `<a href="${window.esc(item.link)}" target="_blank" style="color:#1769aa;text-decoration:underline">🔗 구매링크</a>` : ""}</div>
+          <div class="mobile-card-actions">
+            <button class="mini-btn" onclick="openLedgerModal('${item.id}')">수정</button>
+            <button class="mini-btn" onclick="deleteLedgerItem('${item.id}')">삭제</button>
+          </div>
+        </div>
+      `;
+      mobileList.appendChild(card);
+    });
+  }
+
+  renderExpiryAlerts();
+};
+
+function renderExpiryAlerts() {
+  const expiryContainer = document.getElementById("expiryPageAlertContainer");
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const imminentItems = ledgerItems.filter(item => {
+    if (item.completed || !item.expiryDate) return false;
+    const expDate = new Date(item.expiryDate);
+    expDate.setHours(0, 0, 0, 0);
+    const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+    return diffDays >= 0 && diffDays <= 3;
+  });
+
+  const alertHtml = !imminentItems.length ? "" : `
+    <div class="expiry-alert-bar">
+      <span class="alert-icon">⚠️</span>
+      <strong>[유통기한 임박 알림]</strong>
+      <span>3일 이내 소비해야 할 재료가 ${imminentItems.length}개 있습니다:</span>
+      ${imminentItems.map(item => {
+        const expDate = new Date(item.expiryDate);
+        expDate.setHours(0, 0, 0, 0);
+        const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+        const dayLabel = diffDays === 0 ? "D-Day" : `D-${diffDays}`;
+        return `<span class="expiry-alert-item">${window.esc(item.name)} (${dayLabel})</span>`;
+      }).join(" ")}
+    </div>
+  `;
+
+  if (expiryContainer) expiryContainer.innerHTML = alertHtml;
+}
+
+window.renderExpiryList = () => {
+  renderExpiryAlerts();
+
+  const tbody = document.getElementById("expiryTableBody");
+  const mobileList = document.getElementById("expiryMobileCardList");
+  if (!tbody || !mobileList) return;
+
+  let activeItems = ledgerItems.filter(item => !item.completed && item.expiryDate);
+  const sortType = document.getElementById("expirySortOrder")?.value || "imminent";
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (sortType === "imminent") {
+    activeItems.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+  } else if (sortType === "fresh") {
+    activeItems.sort((a, b) => new Date(b.expiryDate) - new Date(a.expiryDate));
+  } else if (sortType === "abc") {
+    activeItems.sort((a, b) => (a.name || "").localeCompare(b.name || "", "ko"));
+  }
+
+  const countElem = document.getElementById("expiryCount");
+  if (countElem) countElem.textContent = `총 ${activeItems.length}개`;
+
+  tbody.innerHTML = "";
+  mobileList.innerHTML = "";
+
+  if (!activeItems.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#999; padding:20px;">등록된 유통기한 항목이 없습니다.</td></tr>`;
+    mobileList.innerHTML = `<div class="empty">등록된 유통기한 항목이 없습니다.</div>`;
+  } else {
+    activeItems.forEach(item => {
+      const expDate = new Date(item.expiryDate);
+      expDate.setHours(0, 0, 0, 0);
+      const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+      
+      let dDayText = "";
+      let styleAttr = "";
+      if (diffDays < 0) {
+        dDayText = `지남 (${Math.abs(diffDays)}일 전)`;
+        styleAttr = "color: #b32626; font-weight: bold;";
+      } else if (diffDays === 0) {
+        dDayText = "D-Day (오늘까지)";
+        styleAttr = "color: #b32626; font-weight: bold;";
+      } else if (diffDays <= 3) {
+        dDayText = `${diffDays}일 남음`;
+        styleAttr = "color: #b32626; font-weight: bold;";
+      } else {
+        dDayText = `${diffDays}일 남음`;
+      }
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${window.esc(item.category)}</td>
+        <td><span class="clickable-ingredient" onclick="showRecipesByIngredient('${window.esc(item.name)}')">${window.esc(item.name)}</span></td>
+        <td>${window.esc(item.quantity || "-")}</td>
+        <td>${window.esc(item.expiryDate)}</td>
+        <td style="${styleAttr}">${dDayText}</td>
+        <td>${window.esc(item.store || "-")}</td>
+      `;
+      tbody.appendChild(tr);
+
+      const card = document.createElement("div");
+      card.className = "mobile-card-item";
+      card.innerHTML = `
+        <div class="mobile-card-header">
+          <span class="clickable-ingredient" onclick="showRecipesByIngredient('${window.esc(item.name)}')">${window.esc(item.name)}</span>
+          <span class="badge">${window.esc(item.category)}</span>
+        </div>
+        <div class="mobile-card-body">
+          <div>⌛ 유통: ${window.esc(item.expiryDate)}</div>
+          <div style="${styleAttr}">🚨 기한: ${dDayText}</div>
+          <div>📦 수량: ${window.esc(item.quantity || "-")}</div>
+          <div>🏪 구매처: ${window.esc(item.store || "-")}</div>
+        </div>
+      `;
+      mobileList.appendChild(card);
+    });
+  }
+};
+
+window.showRecipesByIngredient = (ingName) => {
+  switchTab("recipes");
+  const typeSelect = document.getElementById("searchType");
+  const searchInput = document.getElementById("searchInput");
+  if (typeSelect && searchInput) {
+    typeSelect.value = "ingredient";
+    searchInput.value = ingName;
+    recipePage = 1;
+    renderRecipes();
+  }
+};
+
+window.renderRandomFilters = () => {
+  const catBox = document.getElementById("randomCategories");
+  const typeBox = document.getElementById("randomTypes");
+  const spiceBox = document.getElementById("randomSpicy");
+  if (!catBox || !typeBox || !spiceBox) return;
+
+  catBox.innerHTML = ["전체", ...orderedCategories()].map(c => `
+    <button type="button" class="filter-pill ${randomState.category === c ? "active" : ""}" onclick="setRandomCat('${window.esc(c)}')">${window.esc(c)}</button>
+  `).join("");
+
+  const types = randomState.category === "전체" ? [] : (categories[randomState.category] || []);
+  typeBox.innerHTML = ["전체", ...types].map(t => `
+    <button type="button" class="filter-pill ${randomState.type === (t === "전체" ? null : t) ? "active" : ""}" onclick="setRandomType(${t === "전체" ? "null" : `'${window.esc(t)}'`})">${window.esc(t)}</button>
+  `).join("");
+
+  spiceBox.innerHTML = ["전체", ...spiceLevels].map(s => `
+    <button type="button" class="filter-pill ${randomState.spice === (s === "전체" ? null : s) ? "active" : ""}" onclick="setRandomSpice(${s === "전체" ? "null" : `'${window.esc(s)}'`})">${window.esc(s)}</button>
+  `).join("");
+};
+
+window.setRandomCat = c => {
+  randomState.category = c;
+  randomState.type = null;
+  renderRandomFilters();
+};
+
+window.setRandomType = t => {
+  randomState.type = t;
+  renderRandomFilters();
+};
+
+window.setRandomSpice = s => {
+  randomState.spice = s;
+  renderRandomFilters();
+};
+
+window.drawRandom = () => {
+  let pool = recipes.filter(r =>
+    (randomState.category === "전체" || r.category === randomState.category) &&
+    (randomState.type === null || r.type === randomState.type) &&
+    (randomState.spice === null || r.spicy === randomState.spice)
+  );
+
+  const card = document.getElementById("randomCard");
+  const history = document.getElementById("randomHistory");
+
+  if (!pool.length) {
+    card.innerHTML = `
+      <div class="emoji">🔍</div>
+      <div class="big-title">추천할 요리가 없어요</div>
+      <div class="small-meta">조건을 변경하거나 새로운 요리를 추가해 보세요.</div>
+    `;
+    return;
+  }
+
+  const picked = pool[Math.floor(Math.random() * pool.length)];
+  randomState.history.unshift(picked.name);
+  randomState.history = randomState.history.slice(0, 5);
+
+  card.innerHTML = `
+    <div class="emoji">🍳</div>
+    <div class="big-title">${window.esc(picked.name)}</div>
+    <div class="small-meta">${window.esc(picked.category)} · ${window.esc(picked.type)} · ${window.esc(picked.spicy)}</div>
+    <div style="font-size:12px;color:#666;margin-top:8px;">🥕 ${window.esc(picked.ingredients || "재료 정보 없음")}</div>
+    ${picked.link ? `<a class="recipe-link" href="${window.esc(picked.link)}" target="_blank" rel="noopener noreferrer" style="margin-top:10px;">🔗 레시피 보기</a>` : ""}
+    <button class="secondary" style="margin-top:12px;" onclick="addRandomToCalendar('${window.esc(picked.name)}')">📅 식단에 추가</button>
+  `;
+
+  history.innerHTML = `최근 추천: ${randomState.history.map(x => window.esc(x)).join(", ")}`;
+};
+
+window.addRandomToCalendar = (recipeName) => {
+  switchTab("calendar");
+  const today = formatDate(new Date());
+  openMealModal(today, "도시락", recipeName);
+};
+
+window.addEventListener("DOMContentLoaded", () => {
+  const hash = location.hash.replace("#", "");
+  const savedTab = localStorage.getItem("activeTab");
+  const initialPage = hash || savedTab || "recipes";
+  switchTab(initialPage);
+  refreshAllViews();
+});
+</script>
+
+</div>
+</body>
+</html>
